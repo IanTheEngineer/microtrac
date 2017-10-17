@@ -5,14 +5,75 @@
     <!-- Gazebo Tags -->
     <!-- xacro:include filename="$(find microtrac_description)/urdf/microtrac_base.gazebo.xacro" / -->
     <!-- Base link is the topside of the center of the fourth hole from in back in the center beam -->
+
+    <!-- Total Mass = 907 kg -->
+    <!-- Frame = 300 kg -->
+    <!-- Arm assembly = 250 kg -->
+    <!-- Powercube = 57 kg -->
+    <!-- Motor / tracks = 150 kg -->
     <link name="base_link"/>
     <link name="frame_link">
+      <!-- Frame measurements in MeshLab
+      Mesh Bounding Box Size 1.320821 1.069590 0.712923
+      Mesh Bounding Box Diag 1.843054 
+      Mesh Volume is 0.075352
+      Mesh Surface is 5.245164
+      Thin shell barycenter 0.303398 -0.005676 0.029403
+      Center of Mass is 0.311785 -0.002656 0.014668
+      Inertia Tensor is :
+      | 0.005805 -0.000060 0.001216 |
+      | -0.000060 0.016542 -0.000024 |
+      | 0.001216 -0.000024 0.017658 |
+      Principal axes are :
+      | 0.994872 -0.002814 0.101101 |
+      | 0.005288 0.999693 -0.024210 |
+      | -0.101002 0.024621 0.994582 |
+      axis momenta are :
+      | 0.005681 0.016541 0.017782 |
+      == Inertia tutorial: http://gazebosim.org/tutorials?tut=inertia&cat=build_robot ==
+      == inertia_urdf = mesh_inertia * mass / mesh_volume
+      == mass / mesh_volume = 300 / 0.075352 = 3981.31436 
+      Inertial URDF is :
+      | 23.1115298598 -0.2388788616   4.84127826176 |
+      | xxxxxxxxxxxxx 65.85890214312 -0.09555154464 |
+      | xxxxxxxxxxxxx xxxxxxxxxxxxxx 70.30204896888 |
+      == com_urdf = mesh_com if scaled properly
+      -->
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
           <mesh filename="package://microtrac_description/meshes/tractor_frame.dae" />
         </geometry>
       </visual>
+      <inertial>
+        <origin rpy="0 0 0" xyz="0.311785 -0.002656 0.014668"/>
+        <mass value="200.0"/>
+        <inertia ixx="23.1115298598" ixy="-0.2388788616" ixz="4.84127826176" iyy="65.85890214312" iyz="-0.09555154464" izz="70.30204896888"/>
+      </inertial>
+      <collision> <!-- Base Platform -->
+        <origin rpy="0 0 0" xyz="0.31 0 -0.1"/>
+        <geometry>
+          <box size="1.34 0.52 0.235"/>
+        </geometry>
+      </collision>
+      <!--collision>  Base Tower 
+        <origin rpy="0 0 0" xyz="0 0 0.0"/>
+        <geometry>
+          <box size="0.01 0.01 0.01"/>
+        </geometry>
+      </collision>
+      <collision>  Front Axle 
+        <origin rpy="0 0 0" xyz="0 0 0.0"/>
+        <geometry>
+          <cylinder length="0.01" radius="0.085"/>
+        </geometry>
+      </collision>
+      <collision> Rear Axle >
+        <origin rpy="0 0 0" xyz="0 0 0.0"/>
+        <geometry>
+          <cylinder length="0.01" radius="0.085"/>
+        </geometry>
+      </collision -->
     </link>
     <joint name="base_frame_joint" type="fixed">
         <origin xyz="0 0 0" rpy="0 0 0" />
@@ -20,7 +81,6 @@
         <child link="frame_link"/>
     </joint>
 
-    <!-- Right Drivetrain -->
     <link name="r_drivetrain_link">
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
@@ -28,6 +88,29 @@
           <mesh filename="package://microtrac_description/meshes/right_drivetrain.dae" />
         </geometry>
       </visual>
+      <!-- 
+      Mesh Bounding Box Size 1.365430 0.395507 0.569377
+      Mesh Bounding Box Diag 1.531344 
+      Mesh Volume is 0.026862
+      Mesh Surface is 5.504533
+      Thin shell barycenter 0.437168 -0.158717 0.063752
+      Center of Mass is 0.373641 -0.146408 0.092987
+      Inertia Tensor is :
+      | 0.001020 0.000165 0.000752 |
+      | 0.000165 0.006166 -0.000078 |
+      | 0.000752 -0.000078 0.005512 |
+      Principal axes are :
+      | 0.986389 0.017856 0.163455 |
+      | -0.033245 0.995213 0.091901 |
+      | -0.161032 -0.096084 0.982261 |
+      axis momenta are :
+      | 0.000892 0.006177 0.005630 |
+      -->
+      <inertial>
+        <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+        <mass value="0.001"/>
+        <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
+      </inertial>
     </link>
     <joint name="r_drivetrain_joint" type="fixed">
         <origin xyz="-0.1526 -0.2542 -0.1523" rpy="0 0 0" />
@@ -41,6 +124,17 @@
           <cylinder length="0.24" radius="0.182"/>
         </geometry>
       </collision>
+      <!--
+      From https://en.wikipedia.org/wiki/List_of_moments_of_inertia
+      Ixx = 1/12*m*(3r^2+h^2) = 1/12*(3*0.182^2+0.24^2)*50 = 0.65405
+      Iyy = 1/12*m*(3r^2+h^2) = 0.65405
+      Izz = 1/2*m*(r^2) = 0.8281
+      -->
+      <inertial>
+        <origin xyz="0 0 0" rpy="0.0 ${pi/2} ${pi/2}"/>
+        <mass value="50"/>
+        <inertia ixx="0.65405" ixy="0.0" ixz="0.0" iyy="0.65405" iyz="0.0" izz="0.8281"/>
+      </inertial>
     </link>
     <joint name="r_rear_wheel_joint" type="continuous">
         <origin xyz="0 -0.17 0" rpy="0 0 0" />
@@ -56,6 +150,11 @@
           <cylinder length="0.24" radius="0.182"/>
         </geometry>
       </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0.0 ${pi/2} ${pi/2}"/>
+        <mass value="50"/>
+        <inertia ixx="0.65405" ixy="0.0" ixz="0.0" iyy="0.65405" iyz="0.0" izz="0.8281"/>
+      </inertial>
     </link>
     <joint name="r_front_wheel_joint" type="continuous">
         <origin xyz="1.015 -0.17 0" rpy="0 0 0" />
@@ -64,7 +163,6 @@
         <axis xyz="0 1 0"/>
     </joint>
 
-    <!-- Left Drivetrain -->
     <link name="l_drivetrain_link">
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
@@ -72,6 +170,11 @@
           <mesh filename="package://microtrac_description/meshes/left_drivetrain.dae" />
         </geometry>
       </visual>
+      <inertial>
+        <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+        <mass value="0.001"/>
+        <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
+      </inertial>
     </link>
     <joint name="l_drivetrain_joint" type="fixed">
         <origin xyz="-0.1526 0.2542 -0.1523" rpy="0 0 0" />
@@ -86,6 +189,11 @@
           <cylinder length="0.24" radius="0.182"/>
         </geometry>
       </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0.0 ${pi/2} ${pi/2}"/>
+        <mass value="50"/>
+        <inertia ixx="0.65405" ixy="0.0" ixz="0.0" iyy="0.65405" iyz="0.0" izz="0.8281"/>
+      </inertial>
     </link>
     <joint name="l_rear_wheel_joint" type="continuous">
         <origin xyz="0 0.17 0" rpy="0 0 0" />
@@ -101,6 +209,11 @@
           <cylinder length="0.24" radius="0.182"/>
         </geometry>
       </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0.0 ${pi/2} ${pi/2}"/>
+        <mass value="50"/>
+        <inertia ixx="0.65405" ixy="0.0" ixz="0.0" iyy="0.65405" iyz="0.0" izz="0.8281"/>
+      </inertial>
     </link>
     <joint name="l_front_wheel_joint" type="continuous">
         <origin xyz="1.015 0.17 0" rpy="0 0 0" />
@@ -116,6 +229,11 @@
           <mesh filename="package://microtrac_description/meshes/powercube.dae" />
         </geometry>
       </visual>
+      <inertial>
+        <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+        <mass value="0.001"/>
+        <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
+      </inertial>
     </link>
     <joint name="powercube_joint" type="fixed">
         <origin xyz="0.07 0 0" rpy="0 0 0" />
